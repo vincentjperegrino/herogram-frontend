@@ -4,6 +4,7 @@ import { getFiles, updateFile } from "../api/File";
 import { File } from "../interfaces/Files";
 import toast from "react-hot-toast";
 import { ClipboardIcon } from "@heroicons/react/24/outline";
+import ClipboardJS from 'clipboard';
 
 type EditingTags = {
   [fileId: string]: string;
@@ -17,6 +18,8 @@ const MediaManager = () => {
   const [files, setFiles] = useState<File[]>([]);
   const [editingTags, setEditingTags] = useState<EditingTags>({});
   const [initialTags, setInitialTags] = useState<InitialTags>({});
+
+  const baseURL = import.meta.env.VITE_API_BACKEND_URL as string;
 
   useEffect(() => {
     const fetchFiles = async () => {
@@ -40,12 +43,37 @@ const MediaManager = () => {
     fetchFiles();
   }, []);
 
+  // const handleCopyLink = (sharedLink: string) => {
+  //   const sharingLink = baseURL + '/files/view/' + sharedLink;
+  //   navigator.clipboard.writeText(sharingLink).then(
+  //     () => toast.success("Link copied to clipboard!"),
+  //     (err) => toast.error("Failed to copy link:", err)
+  //   );
+  // };
+
   const handleCopyLink = (sharedLink: string) => {
-    const sharingLink = 'http://159.89.30.84/api/files/view/' + sharedLink;
-    navigator.clipboard.writeText(sharingLink).then(
-      () => toast.success("Link copied to clipboard!"),
-      (err) => toast.error("Failed to copy link:", err)
-    );
+    const sharingLink = baseURL + '/files/view/' + sharedLink;
+  
+    // Create a temporary button element
+    const tempButton = document.createElement('button');
+    tempButton.setAttribute('data-clipboard-text', sharingLink);
+    document.body.appendChild(tempButton);
+  
+    // Use Clipboard.js to handle copying
+    const clipboard = new ClipboardJS(tempButton);
+  
+    clipboard.on('success', () => {
+      toast.success("Link copied to clipboard!");
+      document.body.removeChild(tempButton); // Cleanup
+    });
+  
+    clipboard.on('error', (err: any) => {
+      toast.error("Failed to copy link:", err);
+      document.body.removeChild(tempButton); // Cleanup
+    });
+  
+    // Trigger the clipboard action
+    tempButton.click();
   };
 
   const handleTagChange = (fileId: string, newTags: string) => {
