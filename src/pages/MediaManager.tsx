@@ -18,8 +18,6 @@ const MediaManager = () => {
   const [editingTags, setEditingTags] = useState<EditingTags>({});
   const [initialTags, setInitialTags] = useState<InitialTags>({});
 
-  const baseURL = import.meta.env.VITE_API_BACKEND_URL as string;
-
   useEffect(() => {
     const fetchFiles = async () => {
       try {
@@ -43,7 +41,7 @@ const MediaManager = () => {
   }, []);
 
   const handleCopyLink = (sharedLink: string) => {
-    const sharingLink = baseURL + '/files/view/' + sharedLink;
+    const sharingLink = 'http://159.89.30.84/api/files/view/' + sharedLink;
     navigator.clipboard.writeText(sharingLink).then(
       () => toast.success("Link copied to clipboard!"),
       (err) => toast.error("Failed to copy link:", err)
