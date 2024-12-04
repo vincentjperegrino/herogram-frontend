@@ -6,19 +6,9 @@ import toast from "react-hot-toast";
 import { ClipboardIcon } from "@heroicons/react/24/outline";
 import ClipboardJS from 'clipboard';
 
-type EditingTags = {
-  [fileId: string]: string;
-};
-
-type InitialTags = {
-  [fileId: string]: string[];
-};
-
 const MediaManager = () => {
   const [files, setFiles] = useState<File[]>([]);
-  const [editingTags, setEditingTags] = useState<EditingTags>({});
-  const [initialTags, setInitialTags] = useState<InitialTags>({});
-
+  
   const baseURL = import.meta.env.VITE_API_BACKEND_URL as string;
 
   useEffect(() => {
@@ -30,26 +20,12 @@ const MediaManager = () => {
         const sortedFiles = fetchedFiles.sort((a, b) => a.order - b.order);
 
         setFiles(sortedFiles);
-
-        const tagsMap: InitialTags = fetchedFiles.reduce((acc: InitialTags, file) => {
-          acc[file._id] = file.tags;
-          return acc;
-        }, {});
-        setInitialTags(tagsMap);
       } catch (error: any) {
         console.error("Error fetching files:", error.message);
       }
     };
     fetchFiles();
   }, []);
-
-  // const handleCopyLink = (sharedLink: string) => {
-  //   const sharingLink = baseURL + '/files/view/' + sharedLink;
-  //   navigator.clipboard.writeText(sharingLink).then(
-  //     () => toast.success("Link copied to clipboard!"),
-  //     (err) => toast.error("Failed to copy link:", err)
-  //   );
-  // };
 
   const handleCopyLink = (sharedLink: string) => {
     const sharingLink = baseURL + '/files/view/' + sharedLink;
@@ -74,50 +50,6 @@ const MediaManager = () => {
   
     // Trigger the clipboard action
     tempButton.click();
-  };
-
-  const handleTagChange = (fileId: string, newTags: string) => {
-    setEditingTags((prev) => ({ ...prev, [fileId]: newTags }));
-  };
-
-  const handleTagBlur = async (fileId: string) => {
-    const rawTags = editingTags[fileId] || "";
-    const normalizedTags = rawTags
-      .split(",")
-      .map((tag) => tag.trim())
-      .filter((tag) => tag !== "");
-
-    const initialFileTags = initialTags[fileId] || [];
-
-    if (
-      normalizedTags.length === initialFileTags.length &&
-      normalizedTags.every((tag, index) => tag === initialFileTags[index])
-    ) {
-      return;
-    }
-
-    try {
-      await updateFile(fileId, { tags: normalizedTags });
-      const updatedFiles = files.map((file) =>
-        file._id === fileId ? { ...file, tags: normalizedTags } : file
-      );
-      setFiles(updatedFiles);
-
-      setEditingTags((prev) => {
-        const { [fileId]: _, ...rest } = prev;
-        return rest;
-      });
-
-      setInitialTags((prev) => ({
-        ...prev,
-        [fileId]: normalizedTags,
-      }));
-
-      toast.success("Tags updated successfully!");
-    } catch (error: any) {
-      console.error("Error updating tags:", error.message);
-      toast.error("Failed to update tags.");
-    }
   };
 
   const handleDragStart = (e: React.DragEvent<HTMLLIElement>, fileId: string) => {
@@ -197,17 +129,6 @@ const MediaManager = () => {
                     <source src={file.url} type={file.type} />
                   </video>
                 ) : null}
-              </div>
-
-              <div className="mt-2">
-                <textarea
-                  value={editingTags[file._id] || file.tags.join(", ")}
-                  onChange={(e) => handleTagChange(file._id, e.target.value)}
-                  onBlur={() => handleTagBlur(file._id)}
-                  rows={2}
-                  className="w-full p-2 border rounded-md text-sm text-gray-900"
-                  placeholder="Add tags, separated by commas"
-                />
               </div>
 
               <div className="flex items-center justify-between mt-2">
