@@ -131,6 +131,12 @@ const MediaManager = () => {
                 ) : null}
               </div>
 
+              <div className="mt-2">
+                <label className="block text-sm font-semibold text-gray-700">
+                  Tags: {file.tags.join(", ")}
+                </label>
+              </div>
+
               <div className="flex items-center justify-between mt-2">
                 <p className="block text-sm font-medium text-gray-500">{file.views} views</p>
                 <button
